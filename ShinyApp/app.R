@@ -19,7 +19,7 @@ source("funct_0downloadFile.R")
 #source("funct_other.R")
 
 
-ui <- dashboardPage(title = 'Costs test - Week 6', function.header(), function.sidebar(), function.body(), skin='black')
+ui <- dashboardPage(title = 'Costs test - Week 7', function.header(), function.sidebar(), function.body(), skin='red')
 
 
 server <- function(input, output, session) {
@@ -500,9 +500,11 @@ server <- function(input, output, session) {
     # Naive Bayes INITIAL 
         resultats <- function.CVNaiveBayes(v$dataframe_targetconfig,input$selectcolumn,v$tabCosts,input$foldselection,v$df_ranges)
         
-        v$tabDetailsCostsInit <- data.frame(v$tabCosts, Total = function.tabCostsTotal(resultats$restab$cost,v$tabCosts$Cost, 1))
+        div = nrow(v$dataframe_targetconfig)
         
-        v$resultDataSaved = sum(resultats$restab$cost * v$tabCosts$Cost) * 5 
+        v$tabDetailsCostsInit <- data.frame(v$tabCosts, Total = function.tabCostsTotal(resultats$restab$cost,v$tabCosts$Cost, div))
+        
+        v$resultDataSaved = sum(resultats$restab$cost * v$tabCosts$Cost) * 5 / div
         
         v$accuracySaved <- mean(resultats$moy)
         v$accuracyTabSaved <- resultats$moy
@@ -519,8 +521,8 @@ server <- function(input, output, session) {
     # Naive Bayes according DQ config #
         resultats <- function.CVNaiveBayes(v$dataframe_results,input$selectcolumn,v$tabCosts,input$foldselection,v$df_ranges)
         
-        div <- (nrow(v$dataframe_results) / nrow(v$dataframe_targetconfig))
         first <- (sum(resultats$restab$cost * v$tabCosts$Cost) * 5 )
+        div <- nrow(v$dataframe_results)
         
         v$tabDetailsCostsDQ <- data.frame(v$tabCosts, Total = function.tabCostsTotal(resultats$restab$cost,v$tabCosts$Cost, div))
         
@@ -767,13 +769,16 @@ server <- function(input, output, session) {
         # Naive Bayes Fixing 
         resultats <- function.CVNaiveBayes(v$dataframe_fixing,input$selectcolumn,v$tabCosts,input$foldselection,v$df_ranges)
         #v$resultDataFixed = sum(resultats$restab$cost * v$tabCosts$Cost) * 5
-        v$tabDetailsCostsFixed <- data.frame(v$tabCosts, Total = function.tabCostsTotal(resultats$restab$cost,v$tabCosts$Cost, 1))
-        v$resultDataFixed <- sum(v$tabDetailsCostsFixed$Total)
+        
+        div <- nrow(v$dataframe_fixing)
+        
+        v$tabDetailsCostsFixed <- data.frame(v$tabCosts, Total = function.tabCostsTotal(resultats$restab$cost,v$tabCosts$Cost, div))
+        v$resultDataFixed <- sum(v$tabDetailsCostsFixed$Total) / div
 
         v$fixingCost <- function.nbInconsistenciesValues(v$matrixBoolInit) * input$costFixingSelection
             
-        v$accuracyFixed <<- mean(resultats$moy)
-        v$accuracyTabFixed <<- resultats$moy
+        v$accuracyFixed <- mean(resultats$moy)
+        v$accuracyTabFixed <- resultats$moy
         
         v$sensitivityFixed <- mean(resultats$sensitivity)
         v$sensitivityTabFixed <- resultats$sensitivity

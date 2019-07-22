@@ -57,10 +57,10 @@ function.BarChartBox <- function(accuracy,accCVBar){
 # Result of cost
 
 function.costsResultsValue <- function(resultData){
-  result <- round(resultData, digits = 0)
+  result <- round(resultData, digits = 3)
   valueBox(
-    value = paste("Cost : ",result)
-    ,paste('Cost :',result)
+    value = paste("Cost per patient : ",result)
+    ,paste('Cost per patient :',result)
     ,icon = icon("menu-hamburger",lib='glyphicon')
     ,color = "green")
 }
