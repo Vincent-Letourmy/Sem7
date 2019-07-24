@@ -8,13 +8,10 @@ function.sidebar <- function(){
     sidebarMenu(
       id = "sidebarmenu",
       menuItem("Initialisation", tabName = "initialisation"),
-      menuItem("Target Config",tabName = "targetconfig"),
       menuItem("Data Quality Config", tabName = "dqconfig"),
+      menuItem("Naive Bayes Config",tabName = "naivebayesconfig"),
       menuItem("Costs Config", tabName = "costsconfig"),
       menuItem("Results", tabName = "results"),
-      menuItem("Optional", tabName = "opt", startExpanded = TRUE, 
-               menuSubItem("Fixed Data", tabName = "fixingData"),
-               menuSubItem("Results fixed Data", tabName = "resultsfixing")),
       menuItem("Website", icon = icon("send",lib='glyphicon'), 
                href = "https://archive.ics.uci.edu/ml/datasets/Cervical+cancer+%28Risk+Factors%29")
     )
@@ -25,7 +22,7 @@ function.body <- function(){
   dashboardBody(
     tabItems(
       
-      #__________________________________________________ Initialisation _______________________________________________________________________________________#
+#________________________________________________________ Initialisation _______________________________________________________________________________________#
       
       tabItem(
         tabName = "initialisation",
@@ -39,7 +36,7 @@ function.body <- function(){
               id = "tabsetInitialisation",
               
               tabPanel(
-                "Load your file",
+                "Upload your file",
                 value = "load",
                 tags$br(),
                 fluidRow(
@@ -57,42 +54,41 @@ function.body <- function(){
               ),
               
               tabPanel(
-                "Types/Ranges",
-                value = "typesranges",
-                fluidRow(
-                  box(width = 12,
-                      uiOutput("selectionfileTypes"),
-                      uiOutput("parametersboxTypes"),
-                      uiOutput("typesButton")
-                  ),
-                  box(width = 12,
-                      uiOutput("selectionfileRanges"),
-                      uiOutput("parametersboxRanges"),
-                      uiOutput("rangesButton")
-                  ),
-                  uiOutput("fromRangesToNextButton")
-                  
-                )
-              ),
-              
-              tabPanel(
                 "Define NAs",
                 value = "defineNas",
                 tags$br(),
                 fluidRow(
-                  box(width = 12,
-                      status = "primary",
-                      title = "Define NAs",
-                      solidHeader = TRUE,
-                      uiOutput("checkBoxInterogation"),
-                      uiOutput("checkBoxEmpty"),
-                      uiOutput("checkBoxNa"),
-                      uiOutput("confirmNAs")
-                  ),
-                  uiOutput("fromInitToNextButton")
+                    box(width = 12,
+                        status = "primary",
+                        title = "Define NAs",
+                        solidHeader = TRUE,
+                        uiOutput("checkBoxInterogation"),
+                        uiOutput("checkBoxEmpty"),
+                        uiOutput("checkBoxNa"),
+                        uiOutput("confirmNAs")
+                    ),
+                    uiOutput("fromDefineToNextTab")
                 )
-              )
+              ),
               
+              tabPanel(
+                "Optional",
+                value = "optional",
+                tags$br(),
+                fluidRow(
+                  box(width = 12,
+                      uiOutput("selectionfileOptional"),
+                      uiOutput("parametersboxOptional"),
+                      fluidRow(
+                        column(6, uiOutput("uploadbuttonOptional"))
+                      ),
+                      uiOutput("costFixingSelection")
+                  ),
+                  uiOutput("fromInitToNextButton"),
+                  uiOutput("skipOptional")
+                )
+                
+              )
             )
           ),
           mainPanel(
@@ -102,34 +98,72 @@ function.body <- function(){
               tabPanel(
                 "Database",
                 value = "database",
-                dataTableOutput("tabLoadedInitialisation"),
-                rHandsontableOutput("dataframeInit")
+                dataTableOutput("tabLoadedInitialisation")
               ),
-            
-            
+              
               tabPanel(
-                "Types and Ranges",
-                value = "typesranges",
-                h3("Types and Ranges"),
-                dataTableOutput("typesFile"),
-                dataTableOutput("rangesFile")
+                "Optional",
+                value = "databaseFixed",
+                fluidRow(valueBoxOutput("matchFixing")),
+                dataTableOutput("tabfixing")
+                
               )
               
             )
           )
         )
       ),
+
       
-      
-      #____________________________________________________ Target Config _________________________________________________________________________________________#
-      
+#________________________________________________________ DataQuality Config _______________________________________________________________________________________#
+        
       tabItem(
-        tabName = "targetconfig",
+        tabName = "dqconfig",
         
         sidebarLayout(
           
           sidebarPanel(
-            h1("Target Config"),
+            h1("Data quality Config"),
+            
+              fluidRow(
+                box(width = 12,
+                    uiOutput("selectionfileTypes"),
+                    uiOutput("parametersboxTypes")
+                ),
+                box(width = 12,
+                    uiOutput("selectionfileRanges"),
+                    uiOutput("parametersboxRanges")
+                ),
+                uiOutput("typesrangesButton"),
+                uiOutput("typesrangesDemo"),
+                tags$br(),
+                uiOutput("fromRangesToNextButton")
+                )
+              
+            
+          ),
+          mainPanel(
+            fluidRow(valueBoxOutput("matchTypes"))
+            ,
+            dataTableOutput("typesFile"),
+            fluidRow(valueBoxOutput("matchRanges"))
+            ,
+            dataTableOutput("rangesFile")
+          )
+        )
+        ),
+  
+  
+  
+#__________________________________________________________ Naive Bayes Config _________________________________________________________________________________________#
+        
+      tabItem(
+        tabName = "naivebayesconfig",
+        
+        sidebarLayout(
+          
+          sidebarPanel(
+            h1("Naive Bayes Config"),
             
             tabsetPanel(
               id = "tabSetTarget",
@@ -144,7 +178,7 @@ function.body <- function(){
                     uiOutput("selectcolumn"),
                     tags$hr(),
                     uiOutput("foldselection"),
-                    uiOutput("nextButton")
+                    uiOutput("fromTargetTonextTabButton")
                   )
                 )
               ),
@@ -154,7 +188,7 @@ function.body <- function(){
                 value = "removecolumn",
                 tags$br(),
                 box(width = 12,
-                    uiOutput("checkBox"),
+                    uiOutput("checkBoxOtherTargets"),
                     uiOutput("ValidCheckBox")
                 ),
                 uiOutput("fromTargetToNextButton")
@@ -163,78 +197,15 @@ function.body <- function(){
             )
           ),
           mainPanel(
+            fluidRow(valueBoxOutput("noMV")),
             dataTableOutput("tabLoadedTargetConfig")
           )
         )
-      ),
-      
-      
-      #__________________________________________________ DataQuality Config _______________________________________________________________________________________#
-      
-      
-      
-      tabItem(
-        tabName = "dqconfig",
+      ), 
         
-        sidebarLayout(
-          
-          sidebarPanel(
-            h1("Data Quality Config"),
-            tags$hr(),
-            
-            tabsetPanel(
-              id = "tabsetdqconfig",
-              
-              tabPanel(
-                "Revome columns",
-                value = "removecolumnsMV",
-                tags$br(),
-                box(width = 12,
-                    h4("Do you want to remove columns with too many missing or inconsistencing values ?"),
-                    uiOutput("pourcentageSelection"),
-                    uiOutput("removecolumnbutton")
-                ),
-                uiOutput("fromRemoveColToNext")
-              ),
-              
-              tabPanel(
-                "Result",
-                value = "result",
-                tags$br(),
-                box(width = 12,
-                    uiOutput("infosRowRemoved"),
-                    uiOutput("downloadButtonFixing")
-                ),
-                uiOutput("fromDQConfigToNextButton")
-              )
-              
-            )
-          ),
-          mainPanel(
-            tabsetPanel(
-              id = "tabset",
-              
-              tabPanel(
-                "Bar Chart",
-                value = "barchart",
-                h3("Pourcentage of missing values in each column"),
-                plotlyOutput("NAsBarChart")
-              ),
-              
-              tabPanel(
-                "DataBase",
-                value = "database",
-                dataTableOutput("tabLoadedDQconfig")
-              )
-            )
-          )
-        )
-      ),
-      
-      
-      
-      #____________________________________________________ Costs Config _________________________________________________________________________________________#
-      
+        
+#__________________________________________________________ Costs Config _________________________________________________________________________________________#
+        
       tabItem(
         tabName = "costsconfig",
         
@@ -256,7 +227,7 @@ function.body <- function(){
                       rHandsontableOutput("costsTab"),
                       tags$br(),
                       uiOutput("validate"),
-                      uiOutput("downloadButton")
+                      uiOutput("downloadCostsButton")
                   ),
                   tags$hr(),
                   uiOutput("fromCostsToNextButton")
@@ -271,178 +242,28 @@ function.body <- function(){
           
         )
       ),
-      
-      #_______________________________________________________ Results ___________________________________________________________________________________________#
-      
+        
+#_____________________________________________________________ Results ___________________________________________________________________________________________#
+        
       tabItem(
         tabName = "results",
-        
-          fluidRow(
-            
-            column(6,
-                   h1("Results - Initial"),
-                   tags$hr(),
-                   uiOutput("accuracyvalueSaved"),
-                   uiOutput("sensitivityvalueSaved"),
-                   uiOutput("specificityvalueSaved"),
-                   
-                   tags$hr(),
-                   uiOutput("costResultsValueSaved"),
-                   tags$hr(),
-                   fluidRow(
-                     uiOutput("boxDetailsInit")
-                   ),
-                   tags$hr(),
-                   uiOutput("infodataSaved"),
-                   fluidRow(
-                     box(width = 12,
-                         title = "DataBase"
-                         ,status = "primary"
-                         ,solidHeader = TRUE
-                         ,collapsible = TRUE
-                         ,collapsed = TRUE
-                       
-                         ,dataTableOutput("tabLoadedResultsSaved")
-                       
-                     )
-                   ),
-                   tags$hr(),
-                   uiOutput("boxBarChartSaved")
-            ),
-            
-            column(6,
-                   h1("Results - According Data Quality Config"),
-                   tags$hr(),
-                   uiOutput("accuracyvalue"),
-                   uiOutput("sensitivityvalue"),
-                   uiOutput("specificityvalue"),
-                  
-                   tags$hr(),
-                   uiOutput("costresultsvalue"),
-                   tags$hr(),
-                   fluidRow(
-                   uiOutput("boxDetailsDQ")
-                   ),
-                   tags$hr(),
-                   uiOutput("infodata"),
-                   fluidRow(
-                     box(width = 12,
-                         title = "DataBase"
-                         ,status = "primary"
-                         ,solidHeader = TRUE
-                         ,collapsible = TRUE
-                         ,collapsed = TRUE
-                         
-                         ,dataTableOutput("tabLoadedResults")
-                         
-                     )
-                   ),
-                   
-                   
-                   tags$hr(),
-                   uiOutput("boxBarChar")
-            )
-            
-          )
-        ),
-      
-      #____________________________________________________ Fixing Data _________________________________________________________________________________________#
-      
-      tabItem(
-        tabName = "fixingData",
-        
-        sidebarLayout(
-          
-          sidebarPanel(
-            h1("Fixing Data"),
-            
-            tabsetPanel(
-              id = "tabsetfixing",
-              
-              tabPanel(
-                
-                title = "Load File",
-                value = "loadfixing",
-                tags$br(),
-                fluidRow(
-                  box(width = 12,
-                      uiOutput("selectionfileFixing"),
-                      uiOutput("parametersboxFixing"),
-                      fluidRow(
-                        column(6, uiOutput("uploadbuttonFixing"))
-                      ),
-                      tags$br()
-                  )
-                ),
-                uiOutput("fromLoadToNext")
-                
-              ),
-              
-              tabPanel(
-                "Fixing",
-                value = "fixing",
-                fluidRow(
-                  box(width = 12,
-                      uiOutput("costFixingSelection")
-                  )
-                ),
-                uiOutput("fromLoadfixingToNextTab")
+        fluidPage(
+          box(title = "Results",
+              solidHeader = TRUE,
+              status = "primary",
+              width = 12,
+              column(12, align = "center",
+                withSpinner(tableOutput("results"))
               )
-              
-            )
-            
-          ),
-          
-          mainPanel(
-            
-            dataTableOutput("tabfixing")
-            
           )
-          
-        )
-      ),
-      
-      tabItem(
-        tabName = "resultsfixing",
-        
-        fluidRow(
-          
-          column(6,
-                 h1("Results - Fixed data"),
-                 tags$hr(),
-                 uiOutput("accuracyvalueFixed"),
-                 uiOutput("sensitivityvalueFixed"),
-                 uiOutput("specificityvalueFixed"),
-                 
-                 tags$hr(),
-                 uiOutput("costResultsValueFixed"),
-                 tags$hr(),
-                 fluidRow(
-                 uiOutput("boxDetailsFixed")
-                 ),
-                 tags$hr(),
-                 uiOutput("infodataFixed"),
-                 
-                 fluidRow(
-                   box(width = 12,
-                       title = "DataBase"
-                       ,status = "primary"
-                       ,solidHeader = TRUE
-                       ,collapsible = TRUE
-                       ,collapsed = TRUE
-                       
-                       ,dataTableOutput("tabLoadedResultsFixed")
-                       
-                   )
-                 ),
-                 
-                 tags$hr(),
-                 uiOutput("boxBarChartFixed")
-          )
+          ,
+          tags$br(),
+          uiOutput("boxPlotCost"),
+          uiOutput("boxPlotAccuracy"),
+          uiOutput("boxPlotSensitivity"),
+          uiOutput("boxPlotSpecificity")
         )
       )
-      
     )
-      
   )
 }

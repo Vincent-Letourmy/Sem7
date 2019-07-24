@@ -113,6 +113,47 @@ function.nbInconsistenciesValues <- function(matrixBool){
 }
 
 
+function.matching <- function(df1, df2, nameFile){
+  
+  if ( is.null(df2) ) {
+    valueBox(value = paste(nameFile,"Match"), subtitle = paste("Please upload",nameFile, "file"), icon = icon("question",lib='font-awesome'), color = "yellow")
+  }
+  else if ( ncol(df1) != ncol(df2) ) {
+    valueBox(value = "Not Match", subtitle = "Number of columns doesn't match", icon = icon("thumbs-down",lib='font-awesome'), color = "red")
+  }
+  else if ( names(df1) != names(df2) ){
+    valueBox(value = "Not Match", subtitle = "Names of Columns don't match", icon = icon("thumbs-down",lib='font-awesome'), color = "red")
+  }
+  else{
+    valueBox(value = "Match", subtitle = "Number and names of columns ok", icon = icon("thumbs-up",lib='font-awesome'), color = "green")
+  }
+  
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -5,8 +5,8 @@ source("funct_5CVNaiveBayes.R")
 
 # Upload Files CSV
 
-function.fileInput <- function(fileCSV){
-  fileInput(fileCSV, "CSV File",
+function.fileInput <- function(fileCSV, fileName){
+  fileInput(fileCSV, paste("CSV File",fileName),
             multiple = FALSE,
             accept = c("text/csv",
                        "text/comma-separated-values,text/plain",
@@ -64,7 +64,7 @@ function.selectionColumn <- function(df){
   }
   items=rev(names(df))
   names(items)=items
-  selectInput("selectcolumn", "Choose a column (try with \"Smokes\")",items)
+  selectInput("selectcolumn", "Choose a column",items)
 }
 
 
