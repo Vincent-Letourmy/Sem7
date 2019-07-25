@@ -10,6 +10,8 @@ function_reactiveValues <- function() {
                  
                  df_types = NULL,
                  df_ranges = NULL,
+                 tabColumnToRemove = NULL,
+                 tooMuchColRemoved = FALSE,
                  
                  matrixBool = NULL,
                  

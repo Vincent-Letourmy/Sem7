@@ -28,7 +28,6 @@ function.body <- function(){
         tabName = "initialisation",
         
         sidebarLayout(
-          
           sidebarPanel(
             h1("Initialisation"),
             
@@ -92,23 +91,27 @@ function.body <- function(){
             )
           ),
           mainPanel(
-            tabsetPanel(
-              id = "tabsetinit",
+            box(
+              width = 12,
               
-              tabPanel(
-                "Database",
-                value = "database",
-                dataTableOutput("tabLoadedInitialisation")
-              ),
-              
-              tabPanel(
-                "Optional",
-                value = "databaseFixed",
-                fluidRow(valueBoxOutput("matchFixing")),
-                dataTableOutput("tabfixing")
+              tabsetPanel(
+                id = "tabsetinit",
+                
+                tabPanel(
+                  "Database",
+                  value = "database",
+                  dataTableOutput("tabLoadedInitialisation")
+                ),
+                
+                tabPanel(
+                  "Optional",
+                  value = "databaseFixed",
+                  fluidRow(valueBoxOutput("matchFixing", width = 12)),
+                  dataTableOutput("tabfixing")
+                  
+                )
                 
               )
-              
             )
           )
         )
@@ -123,32 +126,84 @@ function.body <- function(){
         sidebarLayout(
           
           sidebarPanel(
-            h1("Data quality Config"),
-            
-              fluidRow(
-                box(width = 12,
-                    uiOutput("selectionfileTypes"),
-                    uiOutput("parametersboxTypes")
-                ),
-                box(width = 12,
-                    uiOutput("selectionfileRanges"),
-                    uiOutput("parametersboxRanges")
-                ),
-                uiOutput("typesrangesButton"),
-                uiOutput("typesrangesDemo"),
-                tags$br(),
-                uiOutput("fromRangesToNextButton")
-                )
+            fluidPage(
+              h1("Data quality Config"),
               
-            
+              tabsetPanel(
+                id = "tabsetDQ",
+                
+                tabPanel(
+                  title = "Load DQ Files",
+                  value = "loadDQ",
+                  
+                  fluidRow(
+                    tags$br(),
+                    box(width = 12,
+                        uiOutput("selectionfileTypes"),
+                        uiOutput("parametersboxTypes")
+                    ),
+                    box(width = 12,
+                        uiOutput("selectionfileRanges"),
+                        uiOutput("parametersboxRanges")
+                    ),
+                    uiOutput("typesrangesButton"),
+                    uiOutput("typesrangesDemo"),
+                    tags$br(),
+                    uiOutput("fromLoadDQtoNextTab")
+                    
+                  )
+                  
+                ),
+                
+                tabPanel(
+                  title = "Columns to remove",
+                  value = "removeDQ",
+                  tags$br(),
+                  uiOutput("sliderDQ"),
+                  uiOutput("tooMuchColRemoved"),
+                  tags$br(),
+                  
+                  uiOutput("fromRangesToNextButton")
+                )
+              )
+              
+              
+            )
           ),
           mainPanel(
-            fluidRow(valueBoxOutput("matchTypes"))
-            ,
-            dataTableOutput("typesFile"),
-            fluidRow(valueBoxOutput("matchRanges"))
-            ,
-            dataTableOutput("rangesFile")
+            fluidPage(
+              box(
+                width = 12,
+                
+                tabsetPanel(
+                  id = "tabsetMainDQ",
+                  
+                  tabPanel(
+                    title = "Types/Ranges",
+                    value = "typesranges",
+                    
+                    tags$br(),
+                    fluidRow(valueBoxOutput("matchTypes", width = 12))
+                    ,
+                    dataTableOutput("typesFile"),
+                    tags$hr(),
+                    fluidRow(valueBoxOutput("matchRanges", width = 12))
+                    ,
+                    dataTableOutput("rangesFile")
+                    
+                  ),
+                  
+                  tabPanel(
+                    title = "Selection of columns",
+                    value = "selectcolumns",
+                    
+                    tags$br(),
+                    uiOutput("boxBarchart")
+                    
+                  )
+                )
+              )
+            )
           )
         )
         ),
@@ -176,6 +231,7 @@ function.body <- function(){
                   box(
                     width = 12,
                     uiOutput("selectcolumn"),
+                    fluidRow(valueBoxOutput("noMV", width = 12)),
                     tags$hr(),
                     uiOutput("foldselection"),
                     uiOutput("fromTargetTonextTabButton")
@@ -197,8 +253,10 @@ function.body <- function(){
             )
           ),
           mainPanel(
-            fluidRow(valueBoxOutput("noMV")),
-            dataTableOutput("tabLoadedTargetConfig")
+            box(
+              width = 12,
+              dataTableOutput("tabLoadedTargetConfig")
+            )
           )
         )
       ), 
@@ -237,9 +295,12 @@ function.body <- function(){
           ),
           
           mainPanel(
-            dataTableOutput("tabLoadedCostsConfig")
+            box(
+              width = 12,
+              
+              dataTableOutput("tabLoadedCostsConfig")
+            )
           )
-          
         )
       ),
         

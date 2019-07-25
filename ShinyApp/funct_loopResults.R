@@ -21,13 +21,11 @@ function.tabRes <- function(tabRes, row,colRemoved, badValues, nbcol, nbrow, res
 }
 
 
-function.loopResults <- function(df, dfPerfect, matrix , tabCosts, target, ranges, fold){
+function.loopResults <- function(df, dfPerfect, matrix , tabCosts, target, ranges, fold, tabCol){
   
   tabRes <- data.frame()
   row <- "Data Base - Initial"
-  
-  dfNa <- sort(function.barChartInconsistency(matrix), decreasing = TRUE)
-  nomCol <- names(which(dfNa != 0))
+  nomCol <- names(tabCol)
   
   # Initial
   
@@ -88,7 +86,7 @@ function.loopResults <- function(df, dfPerfect, matrix , tabCosts, target, range
     
     tabRes <- function.tabRes(tabRes, row, 
                               col,
-                              dfNa[col],
+                              tabCol[col],
                               ncol(dfClean),
                               div,
                               res,
@@ -123,3 +121,57 @@ function.loopResults <- function(df, dfPerfect, matrix , tabCosts, target, range
   return(tabRes)
   
 }
+
+function.resLineChart <- function(title, status, tab, colName, y){
+  
+  renderUI({
+    box(title = title,
+        status = status,
+        solidHeader = TRUE,
+        width = 6,
+        
+        renderPlotly({
+          x <- rownames(tab)
+          plot_ly(
+            tab,x = factor(x,levels = x), y = ~tab[,colName], type = "scatter", mode = "lines"
+          ) %>% 
+            layout(xaxis = list(title = "Step"),
+                   yaxis = list(title = y))
+        })
+        
+    )
+  })
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

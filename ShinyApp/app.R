@@ -14,8 +14,6 @@ source("funct_2reactivevalues.R")
 source("funct_3initStep.R")
 source("funct_4dataquality.R")
 source("funct_5CVNaiveBayes.R")
-source("funct_6costs.R")
-source("funct_7results.R")
 source("funct_8fixing.R")
 source("funct_loopResults.R")
 #source("funct_other.R")
@@ -64,7 +62,7 @@ server <- function(input, output, session) {
         actionButton("demobutton","Upload a Demo")
     })
     observeEvent(input$demobutton,{
-        v$dataframe_initialisationBis <- v$dataframe_initialisation <- function.loadFile("../CSV/risk_factors_cervical_cancer_Original.csv", input$header ,"," , input$quote)
+        v$dataframe_initialisationBis <- v$dataframe_initialisation <- function.loadFile("CSV/risk_factors_cervical_cancer_Original.csv", input$header ,"," , input$quote)
     })
     
     
@@ -174,7 +172,11 @@ server <- function(input, output, session) {
     
     output$tabLoadedInitialisation <- renderDataTable(
         v$dataframe_initialisation,
-        options = list(scrollX = TRUE,pageLength = 14, searching = FALSE)
+        options = list(scrollX = TRUE,
+                       pageLength = 14,
+                       lengthChange = FALSE,
+                       searching = FALSE,
+                       info = FALSE)
     )
     
     
@@ -182,7 +184,7 @@ server <- function(input, output, session) {
 # Match of fixing d
     
     output$matchFixing <- renderValueBox({
-        function.matching(v$dataframe_initialisation,v$dataframe_fixing, "Fixed DB")
+        function.matching(v$dataframe_initialisation,v$dataframe_fixing, "Fixed database")
     })
     
     
@@ -190,7 +192,7 @@ server <- function(input, output, session) {
     
     output$tabfixing <- renderDataTable(
         v$dataframe_fixing,
-        options = list(scrollX = TRUE,pageLength = 14, searching = FALSE)
+        options = list(scrollX = TRUE,pageLength = 14, lengthChange = FALSE, searching = FALSE, info = FALSE)
     )
     
     
@@ -220,6 +222,8 @@ server <- function(input, output, session) {
     
 #_______________________________________________________ DQ Config __________________________________________________________________________________________________________________________________________#
     
+    
+### SIDE BAR PANEL
 
 # Upload Types File  °°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°
     
@@ -270,11 +274,14 @@ server <- function(input, output, session) {
     
     
     output$typesrangesDemo <- renderUI({
+        infileRanges <- input$fileCSVRanges
+        infileTypes <- input$fileCSVTypes
+        if (! is.null(infileRanges) && ! is.null(infileTypes)) return (NULL)
         actionButton("typesrangesDemo", "Demo")
     })
     observeEvent(input$typesrangesDemo,{
-        v$df_types <- function.loadFile("../CSV/TypesDataOriginal.csv", input$headerTypes , input$sepTypes , input$quoteTypes)
-        v$df_ranges <- function.loadFile("../CSV/RangesDataOriginal.csv", input$headerRanges , input$sepRanges , input$quoteRanges)
+        v$df_types <- function.loadFile("CSV/TypesDataOriginal.csv", input$headerTypes , input$sepTypes , input$quoteTypes)
+        v$df_ranges <- function.loadFile("CSV/RangesDataOriginal.csv", input$headerRanges , input$sepRanges , input$quoteRanges)
     })
     
     
@@ -289,17 +296,108 @@ server <- function(input, output, session) {
     })
     
     
+# Next tab
+    
+    output$fromLoadDQtoNextTab <- renderUI({
+        actionButton("fromLoadDQtoNextTab", "Next")
+    })
+    observeEvent(input$fromLoadDQtoNextTab, {
+        # Matrix boolean Consistencies values
+        v$matrixBool <- function.matrixBooleanConsistency(v$dataframe_initialisation, v$df_types, v$df_ranges)
+        updateTabsetPanel(session, "tabsetDQ", "removeDQ")
+        updateTabsetPanel(session, "tabsetMainDQ", "selectcolumns")
+    })
+    
+    
+    
+# Slider DQ
+    
+    output$sliderDQ <- renderUI({
+        sliderInput(
+            inputId = "sliderDQ",
+            label = "Choose columns you want to remove",
+            min = 0, max = 100,
+            value = c(0,100)
+        )
+    })
+    
+    
+### MAIN PANEL
+    
 # Types and Ranges tables  °°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°° °°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°
     
     output$typesFile <- renderDataTable(
         v$df_types,
-        options = list(scrollX = TRUE,pageLength = 5, searching = FALSE)
+        options = list(scrollX = TRUE,paging = FALSE, searching = FALSE, info = FALSE)
     )
     
     output$rangesFile <- renderDataTable(
         v$df_ranges,
-        options = list(scrollX = TRUE,pageLength = 10, searching = FALSE)
+        options = list(scrollX = TRUE,paging = FALSE, searching = FALSE, info = FALSE)
     )
+    
+    
+# Bar chart remove columns
+    
+    output$barchartRemoveCol <- renderPlotly({
+        
+        min <- input$sliderDQ[1]
+        max <- input$sliderDQ[2]
+        if (is.null(min)) return(NULL)
+        
+        res <- sort(function.barChartInconsistency(v$matrixBool), decreasing = TRUE)
+        col_names <- names(res)
+        colMin <- names(which(res > min)) 
+        colMax <- names(which(res <= max))
+        columnToRemove <- intersect(colMin,colMax)
+        v$tabColumnToRemove <- res[columnToRemove]
+        
+        plot_ly(x = factor(col_names, levels = col_names), 
+                y = res, 
+                type = "bar",
+                color = col_names%in%columnToRemove , colors = c("#132B43","#132B43","#56B1F7")
+        )
+        
+        
+    })
+    
+    output$boxBarchart <- renderUI({
+        box(
+            title = "Inconsistency bar chart",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 12,
+            
+            plotlyOutput("barchartRemoveCol"),
+            tags$br(),
+            h4(" x  :  Column's name which at least one inconsistency"),
+            h4(" y  :  Pourcentage of inconsistencies")
+            
+        )
+    })
+    
+    
+# Check if too much columns are removed
+    
+    output$tooMuchColRemoved <- renderUI({
+        if (is.null(v$dataframe_initialisation) || is.null(v$tabColumnToRemove)) return(NULL)
+        valueBoxOutput("valueBoxColRemoved", width = 12)
+    })
+    
+    output$valueBoxColRemoved <- renderValueBox({
+        colTotal <- ncol(v$dataframe_initialisation)
+        colRemoved <- length(v$tabColumnToRemove)
+        value <- paste(colRemoved, "/",colTotal)
+        
+        if (colTotal - colRemoved < 2) {
+            v$tooMuchColRemoved <- TRUE
+            valueBox(value = value, subtitle = paste("Too much columns removed"), icon = icon("thumbs-down",lib='font-awesome'), color = "red")
+        }
+        else {
+            v$tooMuchColRemoved <- FALSE
+            valueBox(value = value, subtitle = paste("Still enough columns"), icon = icon("thumbs-up",lib='font-awesome'), color = "green")
+        }
+    })
     
     
     
@@ -309,12 +407,8 @@ server <- function(input, output, session) {
         if (is.null(v$df_types) || is.null(v$df_ranges)) return(NULL)
         actionButton("fromRangesToNextButton","Next")
     })
-    observeEvent(input$fromRangesToNextButton,{
-        
-        # Matrix boolean Consistencies values
-        
-        v$matrixBool <- function.matrixBooleanConsistency(v$dataframe_initialisation, v$df_types, v$df_ranges)
-        
+    observeEvent(input$fromRangesToNextButton,{  
+        if (v$tooMuchColRemoved) return(NULL)
         updateTabItems(session, "sidebarmenu", "naivebayesconfig")
     })
     
@@ -398,7 +492,7 @@ server <- function(input, output, session) {
     
     output$tabLoadedTargetConfig <- renderDataTable(
         v$dataframe_initialisation,
-        options = list(scrollX = TRUE,pageLength = 14, searching = FALSE)
+        options = list(scrollX = TRUE,pageLength = 14, lengthChange = FALSE, searching = FALSE, info = FALSE)
     )
     
     
@@ -454,7 +548,7 @@ server <- function(input, output, session) {
     
     output$tabLoadedCostsConfig <- renderDataTable(
         v$dataframe_initialisation,
-        options = list(scrollX = TRUE,pageLength = 14, searching = FALSE)
+        options = list(scrollX = TRUE,pageLength = 14, lengthChange = FALSE, searching = FALSE, info = FALSE)
     )
     
     
@@ -481,89 +575,41 @@ server <- function(input, output, session) {
 #________________________________________________________ Results  ____________________________________________________________________________________________#
     
 
-# Results °°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°
+### Results
+    
+# LOOP °°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°
     
     output$results <- renderTable ({
         
-        # LOOP
-        
         v$resultsTab <- function.loopResults(
-            
-            v$dataframe_initialisation
+             v$dataframe_initialisation
             ,v$dataframe_fixing
             ,v$matrixBool
             ,v$tabCosts
             ,v$columnSelected
             ,v$df_ranges
-            ,input$foldselection )
-        
-        
+            ,input$foldselection
+            ,v$tabColumnToRemove)
     },
     rownames = TRUE,
     striped = TRUE,
     hover = TRUE
     )
     
-    output$boxPlotCost <- renderUI({
-        box(title = "Cost line chart",
-            status = "danger",
-            solidHeader = TRUE,
-            width = 6,
-            
-            plotlyOutput("plotCost")
-            )
-    })
     
-    output$plotCost <- renderPlotly({
-        x <- rownames(v$resultsTab)
-        plot_ly(v$resultsTab,x = factor(x,levels = x), y = ~v$resultsTab$Cost, type = "scatter", mode = "lines")
-    })
+# Line charts °°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°
     
-    output$boxPlotAccuracy <- renderUI({
-        box(title = "Accuracy line chart",
-            status = "info",
-            solidHeader = TRUE,
-            width = 6,
-            
-            plotlyOutput("plotAccuracy")
-        )
-    })
+    output$boxPlotCost <- function.resLineChart("Cost line chart", "danger", v$resultsTab, "Cost", "Cost")
+        
     
-    output$plotAccuracy <- renderPlotly({
-        x <- rownames(v$resultsTab)
-        plot_ly(v$resultsTab,x = factor(x,levels = x), y = ~v$resultsTab$Accuracy, type = "scatter", mode = "lines")
-    })
+    output$boxPlotAccuracy <- function.resLineChart("Accuracy line chart", "info", v$resultsTab, "Accuracy(%)", "Pourcentage %")
     
-    output$boxPlotSensitivity <- renderUI({
-        box(title = "Sensitivity line chart",
-            status = "info",
-            solidHeader = TRUE,
-            width = 6,
-            
-            plotlyOutput("plotSensitivity")
-        )
-    })
     
-    output$plotSensitivity <- renderPlotly({
-        x <- rownames(v$resultsTab)
-        plot_ly(v$resultsTab,x = factor(x,levels = x), y = ~v$resultsTab$Sensitivity, type = "scatter", mode = "lines")
-    })
+    output$boxPlotSensitivity <- function.resLineChart("Sensitivity line chart", "info", v$resultsTab, "Sensitivity(%)", "Pourcentage %")
+        
     
-    output$boxPlotSpecificity <- renderUI({
-        box(title = "Specificity line chart",
-            status = "info",
-            solidHeader = TRUE,
-            width = 6,
-            
-            plotlyOutput("plotSpecificity")
-        )
-    })
-    
-    output$plotSpecificity <- renderPlotly({
-        x <- rownames(v$resultsTab)
-        plot_ly(v$resultsTab,x = factor(x,levels = x), y = ~v$resultsTab$Specificity, type = "scatter", mode = "lines")
-    })
-    
+    output$boxPlotSpecificity <- function.resLineChart("Specificity line chart", "info", v$resultsTab, "Specificity(%)", "Pourcentage %")
+        
 }
 
 # Run the application 

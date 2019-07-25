@@ -92,8 +92,6 @@ function.tabNaiveBayes <- function(df, colName){
 
 # Sensitivity and specificity due to 
 
-library(pROC)
-
 funct.eval_metrics_binomial <- function(vect) {
   
   results <- list()

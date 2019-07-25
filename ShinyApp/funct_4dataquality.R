@@ -1,43 +1,7 @@
 
-#--- Inconsistencies Bar Chart -----------------------------------------------------------------------------------------#
-
-### Remove columns with too many inconsistencies
-
-function.removeColumns <- function(resNas, df, pourcent, columnSelected){
-  
-  resColo <- 0
-  
-  for (i in names(resNas)){
-    if (i == columnSelected){
-      resColo[i] = i
-    }
-    else if (resNas[i] < pourcent){
-      resColo[i] = i
-    }
-  }
-  resColo <- resColo[-1]
-  df <- df[,resColo]
-  
-  return(df)
-  
-}
-
-
-### Data for bar chart inconsistency
-
-function.barChartInconsistency <- function(matrixBool){
-  res <- 0
-  for (col in names(matrixBool)){
-    column <- matrixBool[,col]
-    res[col] <- round ( sum(column == 1) / length(column) * 100 , digits = 2 )
-  }
-  res <- res[-1]
-  return(res)
-}
-
-
 #--- Consistency --------------------------------------------------------------------------------------------------------#
 
+# °°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°
 
 ### 0/1 file inconsistency
 
@@ -94,6 +58,8 @@ function.matrixBooleanConsistency <- function(df,types,ranges){
   return(a)
 }
 
+# °°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°
+
 function.removeConsistency <- function(df, a){
   rem <- 0
   for (row in row.names(a)) {
@@ -102,32 +68,25 @@ function.removeConsistency <- function(df, a){
   return(rem[-1])
 }
 
-function.nbInconsistenciesValues <- function(matrixBool){
-  res <- 0
-  for (col in names(matrixBool)){
-    column <- matrixBool[,col]
-    res[col] <- sum(column == 1)
-  }
-  res <- res[-1]
-  return(sum(res))
-}
 
+# °°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°
 
 function.matching <- function(df1, df2, nameFile){
   
-  if ( is.null(df2) ) {
-    valueBox(value = paste(nameFile,"Match"), subtitle = paste("Please upload",nameFile, "file"), icon = icon("question",lib='font-awesome'), color = "yellow")
-  }
-  else if ( ncol(df1) != ncol(df2) ) {
-    valueBox(value = "Not Match", subtitle = "Number of columns doesn't match", icon = icon("thumbs-down",lib='font-awesome'), color = "red")
-  }
-  else if ( names(df1) != names(df2) ){
-    valueBox(value = "Not Match", subtitle = "Names of Columns don't match", icon = icon("thumbs-down",lib='font-awesome'), color = "red")
-  }
-  else{
-    valueBox(value = "Match", subtitle = "Number and names of columns ok", icon = icon("thumbs-up",lib='font-awesome'), color = "green")
-  }
+  nbCol <- ncol(df1)
   
+  if ( is.null(df2) ) {
+    valueBox(value = nameFile, subtitle = paste("Please upload",nameFile, "file"), icon = icon("question",lib='font-awesome'), color = "yellow")
+  }
+  else if ( nbCol != ncol(df2) ) {
+    valueBox(value = paste(nameFile," not match"), subtitle = "Number of columns doesn't match", icon = icon("thumbs-down",lib='font-awesome'), color = "red")
+  }
+  else if ( length(union(names(df1),names(df2))) != nbCol){
+      valueBox(value = paste(nameFile," not match"), subtitle = "Column names don't match", icon = icon("thumbs-down",lib='font-awesome'), color = "red")
+  }
+  else 
+    valueBox(value = paste(nameFile," match"), subtitle = "Number and names of columns match", icon = icon("thumbs-up",lib='font-awesome'), color = "green")
+    
 }
 
 
