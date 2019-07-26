@@ -309,15 +309,9 @@ function.body <- function(){
       tabItem(
         tabName = "results",
         fluidPage(
-          box(title = "Results",
-              solidHeader = TRUE,
-              status = "primary",
-              width = 12,
-              column(12, align = "center",
-                withSpinner(tableOutput("results"))
-              )
-          )
-          ,
+          uiOutput("boxresInitial"),
+          uiOutput("boxresDQ"),
+          uiOutput("boxresFixed"),
           tags$br(),
           uiOutput("boxPlotCost"),
           uiOutput("boxPlotAccuracy"),

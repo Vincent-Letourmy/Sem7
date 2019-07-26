@@ -1,6 +1,19 @@
 
 #--- Consistency --------------------------------------------------------------------------------------------------------#
 
+### Data for bar chart inconsistency
+
+function.barChartInconsistency <- function(matrixBool){
+  res <- 0
+  for (col in names(matrixBool)){
+    column <- matrixBool[,col]
+    res[col] <- round ( sum(column == 1) / length(column) * 100 , digits = 2 )
+  }
+  res <- res[-1]
+  return(res)
+}
+
+
 # °°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°
 
 ### 0/1 file inconsistency

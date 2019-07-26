@@ -162,7 +162,7 @@ server <- function(input, output, session) {
     ### Selection Cost Fixing
     
     output$costFixingSelection <- renderUI({
-        numericInput("costFixingSelection", label = "Choose a cost of fixing one value", value = 3,min = 0,max = 100,step = 1)
+        numericInput("costFixingSelection", label = "Enter total cost of fixing values ", value = 1000,min = 0,max = 100000,step = 10)
     })
     
     
@@ -395,7 +395,7 @@ server <- function(input, output, session) {
         }
         else {
             v$tooMuchColRemoved <- FALSE
-            valueBox(value = value, subtitle = paste("Still enough columns"), icon = icon("thumbs-up",lib='font-awesome'), color = "green")
+            valueBox(value = value, subtitle = paste("Columns which will be removed"), icon = icon("thumbs-up",lib='font-awesome'), color = "green")
         }
     })
     
@@ -579,11 +579,29 @@ server <- function(input, output, session) {
     
 # LOOP °°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°
     
-    output$results <- renderTable ({
+    output$resultsInitial <- renderTable ({
         
-        v$resultsTab <- function.loopResults(
+        v$resInitial <- function.uniqueResults( "Database - Initial"
+            ,v$dataframe_initialisation
+            ,v$tabCosts
+            ,v$columnSelected
+            ,v$df_ranges
+            ,input$foldselection
+            ,NULL)
+    },
+    rownames = TRUE,
+    striped = TRUE,
+    hover = TRUE
+    )
+    
+    output$boxresInitial <- renderUI({
+        function.boxresTab("Results - Initial Database","resultsInitial")
+    })
+    
+    output$resultsDQ <- renderTable ({
+        
+        v$resDQ <- function.loopResultsDQ(
              v$dataframe_initialisation
-            ,v$dataframe_fixing
             ,v$matrixBool
             ,v$tabCosts
             ,v$columnSelected
@@ -591,24 +609,52 @@ server <- function(input, output, session) {
             ,input$foldselection
             ,v$tabColumnToRemove)
     },
+    striped = TRUE,
+    hover = TRUE
+    )
+    
+    output$boxresDQ <- renderUI({
+        function.boxresTab("Results - Data quality config","resultsDQ")
+    })
+    
+    output$resultsFixed <- renderTable ({
+        if (is.null(v$dataframe_fixing)) return(NULL)
+        v$resFixed <- function.uniqueResults( "Database - Fixed"
+            ,v$dataframe_fixing
+            ,v$tabCosts
+            ,v$columnSelected
+            ,v$df_ranges
+            ,input$foldselection
+            ,input$costFixingSelection)
+    },
     rownames = TRUE,
     striped = TRUE,
     hover = TRUE
     )
     
+    output$boxresFixed <- renderUI({
+        if (is.null(v$dataframe_fixing)) return(NULL)
+        function.boxresTab("Results - Fixed Database","resultsFixed")
+    })
+    
     
 # Line charts °°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°
     
-    output$boxPlotCost <- function.resLineChart("Cost line chart", "danger", v$resultsTab, "Cost", "Cost")
+    output$boxPlotCost <- function.resLineChart("Cost line chart", "danger", 
+                                                v$resultsTab <- rbind(v$resInitial[,c("Accuracy (%)","Sensitivity (%)","Specificity (%)","Cost (per patient)")],
+                                                                      v$resDQ[,c("Accuracy (%)","Sensitivity (%)","Specificity (%)","Cost (per patient)")],
+                                                                      v$resFixed[,c("Accuracy (%)","Sensitivity (%)","Specificity (%)","Cost (per patient)")]
+                                                                      )
+                                                    , "Cost (per patient)", "Cost")
         
     
-    output$boxPlotAccuracy <- function.resLineChart("Accuracy line chart", "info", v$resultsTab, "Accuracy(%)", "Pourcentage %")
+    output$boxPlotAccuracy <- function.resLineChart("Accuracy line chart", "info", v$resultsTab, "Accuracy (%)", "Pourcentage %")
     
     
-    output$boxPlotSensitivity <- function.resLineChart("Sensitivity line chart", "info", v$resultsTab, "Sensitivity(%)", "Pourcentage %")
+    output$boxPlotSensitivity <- function.resLineChart("Sensitivity line chart", "info", v$resultsTab, "Sensitivity (%)", "Pourcentage %")
         
     
-    output$boxPlotSpecificity <- function.resLineChart("Specificity line chart", "info", v$resultsTab, "Specificity(%)", "Pourcentage %")
+    output$boxPlotSpecificity <- function.resLineChart("Specificity line chart", "info", v$resultsTab, "Specificity (%)", "Pourcentage %")
         
 }
 

@@ -95,9 +95,17 @@ function.tabNaiveBayes <- function(df, colName){
 funct.eval_metrics_binomial <- function(vect) {
   
   results <- list()
-  results$accuracy = ( vect[1] + vect[4] ) / sum(vect)
-  results$sensitivity = vect[4] / ( vect[4] + vect[3] )
-  results$specificity = vect[1] / ( vect[1] + vect[2] )
+  
+  if (sum(vect) != 0) results$accuracy = ( vect[1] + vect[4] ) / sum(vect)
+  else results$accuracy = 0
+  
+  sens <- vect[4] + vect[3]
+  if (sens != 0) results$sensitivity = vect[4] / sens
+  else results$sensitivity = 0
+  
+  spe <- vect[1] + vect[2]
+  if (spe != 0) results$specificity = vect[1] / spe
+  else results$specificity = 0
   
   results
 }

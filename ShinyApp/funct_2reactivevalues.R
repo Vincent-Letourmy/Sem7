@@ -20,6 +20,9 @@ function_reactiveValues <- function() {
                  Results = FALSE,
                  
                  # Results
+                 resInitial = NULL,
+                 resDQ = NULL,
+                 resFixed = NULL,
                  resultsTab = NULL
                  
   )

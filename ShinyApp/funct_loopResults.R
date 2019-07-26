@@ -1,5 +1,5 @@
 
-function.tabRes <- function(tabRes, row,colRemoved, badValues, nbcol, nbrow, res, tabCosts){
+function.tabRes <- function(tabRes, row,colRemoved, badValues, nbcol, nbrow, res, tabCosts,costFixing){
   
   moy <- res$moy
   sens <- res$sensitivity
@@ -7,42 +7,58 @@ function.tabRes <- function(tabRes, row,colRemoved, badValues, nbcol, nbrow, res
   resCost <- res$restab$cost
   costs <- tabCosts$Cost
   
-  tabRes[row,"ColumnRemoved"] <- colRemoved
-  tabRes[row,"Inconsistency(%)"] <- badValues
-  tabRes[row,"NbCol"] <- nbcol
-  tabRes[row,"NbRow"] <- nbrow
-  tabRes[row,"Accuracy(%)"] <- round(mean(moy), digits = 2)
-  tabRes[row,"Sensitivity(%)"] <- round(mean(sens), digits = 2)
-  tabRes[row,"Specificity(%)"] <- round(mean(spe), digits = 2)
-  tabRes[row,"Cost"] <- round(sum(resCost * costs) * 5 / nbrow, digits = 2)
+  if (!is.null(colRemoved)){
+    tabRes[row,"Column removed (inconsistency %)"] <- paste(colRemoved,"(",badValues,"% )")
+    #tabRes[row,"Inconsistency (%)"] <- badValues
+  }
+  tabRes[row,"Nb Col"] <- nbcol
+  tabRes[row,"Nb Row"] <- nbrow
+  tabRes[row,"Accuracy (%)"] <- round(mean(moy), digits = 2)
+  tabRes[row,"Sensitivity (%)"] <- round(mean(sens), digits = 2)
+  tabRes[row,"Specificity (%)"] <- round(mean(spe), digits = 2)
+  cost <- round(sum(resCost * costs) * 5 / nbrow, digits = 2)
+  tabRes[row,"Cost (per patient)"] <- cost
+  
+  if (!is.null(costFixing)){
+    costFix <- costFixing / nbrow
+    tabRes[row,"Fixing cost"] <- costFix
+    tabRes[row,"Total Cost"] <- cost + costFix
+  }
   
   return(tabRes)
   
 }
 
 
-function.loopResults <- function(df, dfPerfect, matrix , tabCosts, target, ranges, fold, tabCol){
-  
+function.uniqueResults <- function(name, df, tabCosts, target, ranges, fold, costFixing){
   tabRes <- data.frame()
-  row <- "Data Base - Initial"
-  nomCol <- names(tabCol)
+  row <- name
   
-  # Initial
+  res <- function.CVNaiveBayes(df,target,tabCosts,fold,ranges)
+  div <- nrow(df)
   
-  dfClean <- df
-  res <- function.CVNaiveBayes(dfClean,target,tabCosts,fold,ranges)
-  div <- nrow(dfClean)
   
   tabRes <- function.tabRes(tabRes, row, 
-                            "",
-                            "",
-                            ncol(dfClean),
+                            NULL,
+                            NULL,
+                            ncol(df),
                             div,
                             res,
-                            tabCosts
+                            tabCosts,
+                            costFixing
   )
   
-  print(row)
+  
+  
+  return(tabRes)
+}
+
+
+
+function.loopResultsDQ <- function(df, matrix , tabCosts, target, ranges, fold, tabCol){
+  
+  tabRes <- data.frame()
+  nomCol <- names(tabCol)
   
   row <- "Data Quality 0"
   
@@ -52,6 +68,7 @@ function.loopResults <- function(df, dfPerfect, matrix , tabCosts, target, range
   dfClean <- df[!row.names(df)%in%rowRemove , ]
   
   res <- function.CVNaiveBayes(dfClean,target,tabCosts,fold,ranges)
+  
   div <- nrow(dfClean)
   
   tabRes <- function.tabRes(tabRes, row, 
@@ -60,7 +77,8 @@ function.loopResults <- function(df, dfPerfect, matrix , tabCosts, target, range
                             ncol(dfClean),
                             div,
                             res,
-                            tabCosts
+                            tabCosts,
+                            NULL
   )
   
   
@@ -68,7 +86,7 @@ function.loopResults <- function(df, dfPerfect, matrix , tabCosts, target, range
   n <- 0
   row <- paste(l,n)
   
-  print(row)
+ 
   
   for (col in nomCol) {
     
@@ -82,6 +100,7 @@ function.loopResults <- function(df, dfPerfect, matrix , tabCosts, target, range
     dfClean <- df[!row.names(df)%in%rowRemove , ]
     
     res <- function.CVNaiveBayes(dfClean,target,tabCosts,fold,ranges)
+    
     div <- nrow(dfClean)
     
     tabRes <- function.tabRes(tabRes, row, 
@@ -90,37 +109,23 @@ function.loopResults <- function(df, dfPerfect, matrix , tabCosts, target, range
                               ncol(dfClean),
                               div,
                               res,
-                              tabCosts
+                              tabCosts,
+                              NULL
     )
     
-    print(row)
-    
-  }
-  
-  row <- "Data Base - Fixed"
-  
-  if (! is.null(dfPerfect)){
-    dfClean <- dfPerfect
-    
-    res <- function.CVNaiveBayes(dfClean,target,tabCosts,fold,ranges)
-    div <- nrow(dfClean)
     
     
-    tabRes <- function.tabRes(tabRes, row, 
-                              "",
-                              "",
-                              ncol(dfClean),
-                              div,
-                              res,
-                              tabCosts
-    )
-    
-    print(row)
   }
   
   return(tabRes)
   
 }
+
+
+
+
+
+
 
 function.resLineChart <- function(title, status, tab, colName, y){
   
@@ -144,8 +149,16 @@ function.resLineChart <- function(title, status, tab, colName, y){
 
 }
 
-
-
+function.boxresTab <- function(name, tableName){
+  box(title = name,
+      solidHeader = TRUE,
+      status = "primary",
+      width = 12,
+      column(12, align = "center",
+             withSpinner(tableOutput(tableName))
+      )
+  )
+}
 
 
 
