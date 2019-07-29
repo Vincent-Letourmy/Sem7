@@ -10,7 +10,8 @@ function.fileInput <- function(fileCSV, fileName){
             multiple = FALSE,
             accept = c("text/csv",
                        "text/comma-separated-values,text/plain",
-                       ".csv"))
+                       ".csv")
+            )
 }
 
 function.loadFile <- function(file, header, sep, quote){

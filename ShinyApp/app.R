@@ -24,6 +24,8 @@ ui <- dashboardPage(title = 'Costs test - Week 7', function.header(), function.s
 
 server <- function(input, output, session) {
     
+    options(shiny.maxRequestSize=30*1024^2)
+    
     v <- function_reactiveValues()
     
 #________________________________________________________ Initialisation _____________________________________________________________________________________________________________________________________________#
